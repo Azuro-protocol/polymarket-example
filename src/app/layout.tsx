@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
+import { cookies } from 'next/headers'
 
-const inter = Inter({ subsets: ["latin"] });
+import { Header, Providers, Betslip } from '@/components';
+
+import '@rainbow-me/rainbowkit/styles.css'
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -14,9 +16,23 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = cookies()
+
+  const initialChainId = cookieStore.get('appChainId')?.value
+
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body>
+        <Providers initialChainId={initialChainId}>
+          <div className="md:max-w-[1040px] mx-auto">
+            <Header />
+            <main>
+              {children}
+              <Betslip />
+            </main>
+          </div>
+        </Providers>
+      </body>
     </html>
   );
 }
