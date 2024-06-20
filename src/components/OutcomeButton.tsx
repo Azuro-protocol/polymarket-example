@@ -14,7 +14,7 @@ type OutcomeProps = {
 export function OutcomeButton(props: OutcomeProps) {
   const { className, text, outcome } = props
 
-  const { items, addItem, removeItem } = useBaseBetslip()
+  const { items, addItem, removeItem, clear } = useBaseBetslip()
   const { odds, isLocked, isOddsFetching } = useSelection({
     selection: outcome,
     initialOdds: outcome.odds,
@@ -33,7 +33,7 @@ export function OutcomeButton(props: OutcomeProps) {
   }, [ odds ])
 
   const buttonClassName = cx(`flex justify-between p-2 transition rounded-2xl cursor-pointer w-full disabled:cursor-not-allowed disabled:opacity-50 ${className}`, {
-    'bg-slate-200 hover:bg-slate-300': isActive,
+    'bg-slate-300 hover:bg-slate-400': isActive,
     'bg-zinc-50 hover:bg-zinc-100': !isActive,
   })
 
@@ -41,6 +41,7 @@ export function OutcomeButton(props: OutcomeProps) {
     if (isActive) {
       removeItem(outcome)
     } else {
+      clear()
       addItem(outcome)
     }
   }
