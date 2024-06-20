@@ -1,6 +1,6 @@
 import { Selection, useChain } from "@azuro-org/sdk";
 import { useMemo } from "react";
-import { useConfig, useReadContract } from "wagmi";
+import { useConfig, useReadContract, useWatchContractEvent } from "wagmi";
 import { useQuery } from '@tanstack/react-query'
 import { readContract } from '@wagmi/core'
 import { formatUnits } from "viem";
@@ -24,7 +24,7 @@ export const useOrderBook = (selection: Selection) => {
     }
   })
 
-  const { data: condition, isFetching: isConditionFetching } = useReadContract({
+  const { data: condition, isFetching: isConditionFetching, refetch: refetchCondition } = useReadContract({
     address: contracts.prematchCore.address,
     abi: contracts.prematchCore.abi,
     functionName: 'getCondition',
@@ -33,6 +33,20 @@ export const useOrderBook = (selection: Selection) => {
     query: {
       refetchOnWindowFocus: false,
     }
+  })
+
+  useWatchContractEvent({
+    address: contracts.prematchCore.address,
+    abi: contracts.prematchCore.abi,
+    eventName: 'NewBet',
+    chainId: appChain.id,
+    onLogs(logs) {
+      const log = logs[0]!
+
+      if (conditionId === String(log.args.conditionId!)) {
+        refetchCondition()
+      }
+    },
   })
 
   const outcomeLiquidity = useMemo(() => {
@@ -61,6 +75,20 @@ export const useOrderBook = (selection: Selection) => {
         odds: formatOdds(formatUnits(odds, 12))
       })
     }
+
+    const lowestRawBetAmount = outcomeLiquidity! / BigInt(125)
+    const odds = await readContract(config, {
+      address: contracts.prematchCore.address,
+      abi: contracts.prematchCore.abi,
+      chainId: appChain.id,
+      functionName: 'calcOdds',
+      args: [ BigInt(conditionId), lowestRawBetAmount, BigInt(outcomeId) ],
+    })
+
+    result.push({
+      betAmount: formatUnits(lowestRawBetAmount, betToken.decimals),
+      odds: formatOdds(formatUnits(odds, 12))
+    })
 
     return result
   }
