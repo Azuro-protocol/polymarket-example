@@ -94,7 +94,7 @@ export const useOrderBook = (selection: Selection) => {
   }
 
   const { data, isFetching } = useQuery({
-    queryKey: ['order-book', conditionId, outcomeId],
+    queryKey: ['order-book', conditionId, outcomeId, String(outcomeLiquidity)],
     queryFn: createOrderBook,
     refetchOnWindowFocus: false,
     enabled: Boolean(outcomeLiquidity)
